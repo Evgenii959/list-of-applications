@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import HomePage from '../pages/HomePage.vue';
+import TablePage from '../pages/TablePage.vue';
 import LoginPage from '../pages/LoginPage.vue';
 
 Vue.use(Router);
@@ -8,8 +8,8 @@ Vue.use(Router);
 const routes = [
   {
     path: '/list-of-applications/',
-    name: 'HomePage',
-    component: HomePage,
+    name: 'TablePage',
+    component: TablePage,
   },
   {
     path: '/list-of-applications/login',

@@ -1,13 +1,21 @@
 <template>
   <div class="modal-backdrop">
     <div class="modal">
-      <h2>{{ isNew ? "Создание заявки" : "Редактирование заявки" }}</h2>
+      <h2>{{ isNew ? 'Создание заявки' : 'Редактирование заявки' }}</h2>
       <form @submit.prevent="handleSubmit">
         <!-- Поле "Дом" -->
         <label>
           Дом
-          <select v-model="formData.premise_id" @change="fetchApartments">
-            <option v-for="premise in premises" :key="premise.id" :value="premise.id">
+          <select
+            class="modal__field"
+            v-model="formData.premise_id"
+            @change="fetchApartments"
+          >
+            <option
+              v-for="premise in premises"
+              :key="premise.id"
+              :value="premise.id"
+            >
               {{ premise.name }}
             </option>
           </select>
@@ -16,8 +24,12 @@
         <!-- Поле "Квартира" -->
         <label>
           Квартира
-          <select v-model="formData.apartment_id">
-            <option v-for="apartment in apartments" :key="apartment.id" :value="apartment.id">
+          <select class="modal__field" v-model="formData.apartment_id">
+            <option
+              v-for="apartment in apartments"
+              :key="apartment.id"
+              :value="apartment.id"
+            >
               {{ apartment.number }}
             </option>
           </select>
@@ -26,19 +38,35 @@
         <!-- Поля заявителя -->
         <label>
           Фамилия
-          <input type="text" v-model="formData.applicant.last_name" />
+          <input
+            class="modal__field"
+            type="text"
+            v-model="formData.applicant.last_name"
+          />
         </label>
         <label>
           Имя
-          <input type="text" v-model="formData.applicant.first_name" />
+          <input
+            class="modal__field"
+            type="text"
+            v-model="formData.applicant.first_name"
+          />
         </label>
         <label>
           Отчество
-          <input type="text" v-model="formData.applicant.patronymic_name" />
+          <input
+            class="modal__field"
+            type="text"
+            v-model="formData.applicant.patronymic_name"
+          />
         </label>
         <label>
           Телефон
-          <input type="text" v-model="formData.applicant.username" />
+          <input
+            class="modal__field"
+            type="text"
+            v-model="formData.applicant.username"
+          />
         </label>
 
         <!-- Поле "Описание" -->
@@ -50,13 +78,15 @@
         <!-- Поле "Срок" -->
         <label>
           Срок
-          <input type="datetime-local" v-model="formData.due_date" />
+          <input
+            class="modal__field"
+            type="datetime-local"
+            v-model="formData.due_date"
+          />
         </label>
 
         <!-- Отображение статуса -->
-        <p v-if="!isNew">
-          <strong>Статус:</strong> {{ appeal.status }}
-        </p>
+        <p v-if="!isNew"><strong>Статус:</strong> {{ appeal.status }}</p>
 
         <!-- Ошибки -->
         <ul v-if="errors.length" class="errors">
@@ -65,7 +95,7 @@
 
         <!-- Кнопки -->
         <div class="actions">
-          <button type="submit">{{ isNew ? "Создать" : "Сохранить" }}</button>
+          <button type="submit">{{ isNew ? 'Создать' : 'Сохранить' }}</button>
           <button type="button" @click="$emit('close')">Отмена</button>
         </div>
       </form>
@@ -74,10 +104,10 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from 'axios';
 
 export default {
-  name: "Modal",
+  name: 'Modal',
   props: {
     appeal: {
       type: Object,
@@ -91,16 +121,16 @@ export default {
   data() {
     return {
       formData: {
-        premise_id: "",
-        apartment_id: "",
+        premise_id: '',
+        apartment_id: '',
         applicant: {
-          last_name: "",
-          first_name: "",
-          patronymic_name: "",
-          username: "",
+          last_name: '',
+          first_name: '',
+          patronymic_name: '',
+          username: '',
         },
-        description: "",
-        due_date: "",
+        description: '',
+        due_date: '',
       },
       premises: [],
       apartments: [],
@@ -125,11 +155,12 @@ export default {
     async fetchPremises() {
       try {
         const response = await axios.get(
-          "https://dev.moydomonline.ru/api/geo/v2.0/user-premises/"
+          'https://dev.moydomonline.ru/api/geo/v2.0/user-premises/'
         );
+        console.log(response);
         this.premises = response.data.results;
       } catch (error) {
-        console.error("Ошибка при загрузке домов:", error);
+        console.error('Ошибка при загрузке домов:', error);
       }
     },
     // Загрузка списка квартир
@@ -138,26 +169,27 @@ export default {
         const response = await axios.get(
           `https://dev.moydomonline.ru/api/geo/v1.0/apartments/?premise_id=${this.formData.premise_id}`
         );
+        console.log(response);
         this.apartments = response.data.results;
       } catch (error) {
-        console.error("Ошибка при загрузке квартир:", error);
+        console.error('Ошибка при загрузке квартир:', error);
       }
     },
     // Отправка данных
     async handleSubmit() {
       try {
         const url = this.isNew
-          ? "https://dev.moydomonline.ru/api/appeals/v1.0/appeals/"
+          ? 'https://dev.moydomonline.ru/api/appeals/v1.0/appeals/'
           : `https://dev.moydomonline.ru/api/appeals/v1.0/appeals/${this.appeal.id}/`;
-        const method = this.isNew ? "post" : "patch";
+        const method = this.isNew ? 'post' : 'patch';
         await axios[method](url, this.formData);
-        this.$emit("save");
-        this.$emit("close");
+        this.$emit('save');
+        this.$emit('close');
       } catch (error) {
         if (error.response && error.response.data) {
           this.errors = Object.values(error.response.data).flat();
         } else {
-          console.error("Ошибка при сохранении заявки:", error);
+          console.error('Ошибка при сохранении заявки:', error);
         }
       }
     },
@@ -171,7 +203,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -190,6 +222,11 @@ export default {
   border-radius: 8px;
   width: 500px;
   max-width: 90%;
+  &__field {
+    width: 100%;
+    padding: 18px 0;
+    border: 1px solid #cccccc;
+  }
 }
 
 label {
@@ -202,6 +239,7 @@ textarea,
 input,
 select {
   margin-top: 5px;
+  border: 1px solid #cccccc;
 }
 
 .errors {
