@@ -3,7 +3,6 @@
     <div class="modal">
       <h2>{{ isNew ? 'Создание заявки' : 'Редактирование заявки' }}</h2>
       <form @submit.prevent="handleSubmit">
-        <!-- Поле "Дом" -->
         <label>
           Дом
           <select
@@ -11,20 +10,20 @@
             v-model="formData.premise_id"
             @change="fetchApartments"
           >
+            <option value="">Дом</option>
             <option
               v-for="premise in premises"
               :key="premise.id"
               :value="premise.id"
             >
-              {{ premise.name }}
+              {{ premise.address }}
             </option>
           </select>
         </label>
-
-        <!-- Поле "Квартира" -->
         <label>
           Квартира
           <select class="modal__field" v-model="formData.apartment_id">
+            <option value="">Квартира</option>
             <option
               v-for="apartment in apartments"
               :key="apartment.id"
@@ -34,8 +33,6 @@
             </option>
           </select>
         </label>
-
-        <!-- Поля заявителя -->
         <label>
           Фамилия
           <input
@@ -68,14 +65,10 @@
             v-model="formData.applicant.username"
           />
         </label>
-
-        <!-- Поле "Описание" -->
         <label>
           Описание
           <textarea v-model="formData.description"></textarea>
         </label>
-
-        <!-- Поле "Срок" -->
         <label>
           Срок
           <input
@@ -84,16 +77,11 @@
             v-model="formData.due_date"
           />
         </label>
-
-        <!-- Отображение статуса -->
         <p v-if="!isNew"><strong>Статус:</strong> {{ appeal.status }}</p>
-
-        <!-- Ошибки -->
         <ul v-if="errors.length" class="errors">
           <li v-for="error in errors" :key="error">{{ error }}</li>
         </ul>
 
-        <!-- Кнопки -->
         <div class="actions">
           <button type="submit">{{ isNew ? 'Создать' : 'Сохранить' }}</button>
           <button type="button" @click="$emit('close')">Отмена</button>
@@ -131,6 +119,7 @@ export default {
         },
         description: '',
         due_date: '',
+        status_id: 1,
       },
       premises: [],
       apartments: [],
@@ -151,38 +140,52 @@ export default {
     },
   },
   methods: {
-    // Загрузка списка домов
     async fetchPremises() {
+      const token = localStorage.getItem('authToken');
       try {
         const response = await axios.get(
-          'https://dev.moydomonline.ru/api/geo/v2.0/user-premises/'
+          `https://dev.moydomonline.ru/api/geo/v2.0/user-premises/?search=`,
+          {
+            headers: { Authorization: `Token ${token}` },
+          }
         );
-        console.log(response);
         this.premises = response.data.results;
       } catch (error) {
         console.error('Ошибка при загрузке домов:', error);
       }
     },
-    // Загрузка списка квартир
     async fetchApartments() {
+      const token = localStorage.getItem('authToken');
       try {
         const response = await axios.get(
-          `https://dev.moydomonline.ru/api/geo/v1.0/apartments/?premise_id=${this.formData.premise_id}`
+          `https://dev.moydomonline.ru/api/geo/v1.0/apartments/?premise_id=${this.formData.premise_id}`,
+          {
+            headers: { Authorization: `Token ${token}` },
+          }
         );
-        console.log(response);
         this.apartments = response.data.results;
       } catch (error) {
         console.error('Ошибка при загрузке квартир:', error);
       }
     },
-    // Отправка данных
     async handleSubmit() {
       try {
+        const token = localStorage.getItem('authToken');
+
         const url = this.isNew
           ? 'https://dev.moydomonline.ru/api/appeals/v1.0/appeals/'
           : `https://dev.moydomonline.ru/api/appeals/v1.0/appeals/${this.appeal.id}/`;
+
         const method = this.isNew ? 'post' : 'patch';
-        await axios[method](url, this.formData);
+
+        console.log('Отправка данных:', this.formData);
+
+        const response = await axios[method](url, this.formData, {
+          headers: { Authorization: `Token ${token}` },
+        });
+
+        console.log('Ответ от сервера:', response);
+
         this.$emit('save');
         this.$emit('close');
       } catch (error) {

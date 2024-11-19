@@ -41,34 +41,27 @@
 </template>
 
 <script>
-import axios from 'axios';
-
 export default {
   name: 'LoginPage',
   data() {
     return {
       username: '',
       password: '',
-      errorMessage: '',
     };
   },
+  computed: {
+    errorMessage() {
+      return this.$store.getters.errorMessage;
+    }
+  },
   methods: {
-    async signIn() {
-      try {
-        const response = await axios.post(
-          'https://dev.moydomonline.ru/api/auth/login/',
-          {
-            username: this.username,
-            password: this.password,
+    signIn() {
+      this.$store.dispatch('signIn', { username: this.username, password: this.password })
+        .then(() => {
+          if (this.$store.getters.isAuthenticated) {
+            this.$router.push('/list-of-applications/');
           }
-        );
-
-        const token = response.data.key;
-        localStorage.setItem('authToken', token);
-        this.$router.push('/list-of-applications/');
-      } catch (error) {
-        this.errorMessage = 'Неправильные данные. Проверьте логин и пароль.';
-      }
+        });
     },
   },
 };
