@@ -1,6 +1,6 @@
 <template>
   <div class="pagination">
-    <div>
+    <div class="pagination__text">
       <span>
         <b
           >{{ (currentPage - 1) * itemsPerPage + 1 }} -
@@ -103,7 +103,15 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 32px;
+  &__text {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-left: 8px;
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 14px;
+  }
   &__select {
     padding: 8.5px 0;
     border: 0;
@@ -119,6 +127,9 @@ export default {
     cursor: pointer;
     background: transparent;
     color: #6c757d;
+    font-weight: 400;
+    font-size: 10px;
+    line-height: 12px;
   }
 
   &__button.active {

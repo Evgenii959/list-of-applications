@@ -29,6 +29,7 @@
     <Table
       :paginatedAppeals="paginatedAppeals"
       :openEditModal="openEditModal"
+      @update-selected-appeal="updateSelectedAppeal"
     />
     <Pagination
       :currentPage="currentPage"
@@ -41,7 +42,7 @@
     <Modal
       v-if="isModalOpen"
       :appeal="currentAppeal"
-      :is-new="isCreating"
+      :isNew="isCreating"
       @close="closeModal"
       @save="fetchAppeals"
     />
@@ -109,15 +110,21 @@ export default {
       this.isCreating = false;
       this.isModalOpen = true;
     },
+    updateSelectedAppeal(appeal) {
+      this.selectedAppeal = appeal;
+    },
     closeModal() {
       this.isModalOpen = false;
     },
     searchAppeals() {
       this.searchQuery = this.localSearchQuery;
+      this.currentPage = 1;
       this.fetchAppeals();
     },
     updateItemsPerPage(newItemsPerPage) {
-      this.itemsPerPage = newItemsPerPage;
+      if (newItemsPerPage > 0) {
+        this.itemsPerPage = newItemsPerPage;
+      }
     },
   },
 };
@@ -126,6 +133,9 @@ export default {
 <style lang="scss" scoped>
 .list {
   padding: 10px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
   &__create {
     display: flex;
     justify-content: end;

@@ -13,17 +13,25 @@
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="appeal in paginatedAppeals"
-          :key="appeal.number"
-          @click="openEditModal(appeal)"
-        >
-          <td class="table__id">{{ appeal.number }}</td>
-          <td>{{ formatDate(appeal.created_at) }}</td>
+        <tr v-for="appeal in paginatedAppeals" :key="appeal.number">
+          <td class="table__id" @click="handleRowClick(appeal)">
+            {{ appeal.number }}
+          </td>
+          <td>{{ formatDateCreate(appeal.created_at) }}</td>
           <td>{{ appeal?.premise?.address || 'Адрес не указан' }}</td>
-          <td>{{ appeal.applicant.first_name }}</td>
+          <td>
+            {{
+              appeal.applicant.first_name &&
+              appeal.applicant.patronymic_name &&
+              appeal.applicant.last_name
+                ? `${appeal.applicant.first_name} ${
+                    appeal.applicant.patronymic_name[0] || ''
+                  }.${appeal.applicant.last_name[0] || ''}.`
+                : 'Имя не указано'
+            }}
+          </td>
           <td>{{ appeal.description }}</td>
-          <td>{{ formatDate(appeal.due_date) }}</td>
+          <td>{{ formatDateTime(appeal.due_date) }}</td>
           <td>{{ appeal.status.name }}</td>
         </tr>
       </tbody>
@@ -35,6 +43,11 @@
 <script>
 export default {
   name: 'Table',
+  data() {
+    return {
+      selectedAppeal: null,
+    };
+  },
   props: {
     paginatedAppeals: {
       type: Array,
@@ -46,8 +59,27 @@ export default {
     },
   },
   methods: {
-    formatDate(date) {
+    handleRowClick(appeal) {
+      this.$emit('update-selected-appeal', appeal);
+      this.openEditModal(appeal);
+    },
+    formatDateCreate(date) {
       return new Date(date).toLocaleDateString();
+    },
+    formatDateTime(dateString) {
+      if (!dateString) return 'Дата не указана';
+      const date = new Date(dateString);
+
+      const options = {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      };
+
+      return date.toLocaleString('ru-RU', options);
     },
   },
 };
@@ -71,12 +103,15 @@ export default {
     font-size: 12px;
     line-height: 20px;
     margin: auto 0 auto 4px;
+    cursor: pointer;
   }
 }
 th {
   text-align: start;
   padding: 12px 8px;
-  /*   font-family: 'Roboto', 'sans-serif'; */
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
   color: #50b053;
 }
 tr {
@@ -86,6 +121,13 @@ tr {
 }
 
 td {
-  padding: 15px 4px;
+  padding: 18px 4px;
+  max-width: 240px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
 }
 </style>

@@ -8,6 +8,7 @@ const store = new Vuex.Store({
   state: {
     appeals: [],
     premises: [],
+    apartments: [],
     authToken: localStorage.getItem('authToken') || '',
     errorMessage: '',
   },
@@ -43,6 +44,9 @@ const store = new Vuex.Store({
     setPremises(state, premises) {
       state.premises = premises;
     },
+    setApartments(state, apartments) {
+      state.apartments = apartments;
+    },
   },
   actions: {
     async signIn({ commit }, { username, password }) {
@@ -75,7 +79,6 @@ const store = new Vuex.Store({
           throw new Error(`Ошибка: ${response.status}`);
         }
         const data = await response.json();
-        console.log(data.results)
         commit('setAppeals', data.results || []);
       } catch (error) {
         console.error('Ошибка при загрузке заявок:', error);
@@ -93,6 +96,40 @@ const store = new Vuex.Store({
         commit('setPremises', response.data.results);
       } catch (error) {
         console.error('Ошибка при загрузке домов:', error);
+      }
+    },
+    async fetchApartments({ commit }, premiseId) {
+      const token = localStorage.getItem('authToken');
+      try {
+        const response = await axios.get(
+          `https://dev.moydomonline.ru/api/geo/v1.0/apartments/?premise_id=${premiseId}`,
+          {
+            headers: { Authorization: `Token ${token}` },
+          }
+        );
+        commit('setApartments', response.data.results);
+      } catch (error) {
+        console.error('Ошибка при загрузке квартир:', error);
+      }
+    },
+    async saveAppeal({ state }, { data, isNew }) {
+      const token = state.authToken;
+      const url = isNew
+        ? 'https://dev.moydomonline.ru/api/appeals/v1.0/appeals/'
+        : `https://dev.moydomonline.ru/api/appeals/v1.0/appeals/${data.id}/`;
+      const method = isNew ? 'post' : 'patch';
+
+      try {
+        await axios[method](url, data, {
+          headers: { Authorization: `Token ${token}` },
+        });
+      } catch (error) {
+        if (error.response && error.response.data) {
+          throw Object.values(error.response.data).flat();
+        } else {
+          console.error('Ошибка при сохранении заявки:', error);
+          throw ['Ошибка сохранения данных'];
+        }
       }
     },
   },

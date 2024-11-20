@@ -1,16 +1,34 @@
 <template>
-  <div class="modal-backdrop">
-    <div class="modal">
-      <h2>{{ isNew ? 'Создание заявки' : 'Редактирование заявки' }}</h2>
-      <form @submit.prevent="handleSubmit">
-        <label>
-          Дом
+  <div
+    class="modal"
+    @keydown.esc="handleClose"
+    @click.self="handleClose"
+    tabindex="0"
+  >
+    <form @submit.prevent="handleSubmit" class="modal__form">
+      <div class="modal__block">
+        <h2 class="modal__title">
+          {{
+            isNew
+              ? 'Создание заявки'
+              : `Заявка №${appeal.number} от ${formatDateCreate(
+                  appeal.created_at
+                )}`
+          }}
+        </h2>
+        <p v-if="!isNew" class="modal__status">{{ appeal.status.name }}</p>
+      </div>
+      <div class="modal__input">
+        <div>
+          <label v-if="!isNew">Дом</label>
           <select
             class="modal__field"
             v-model="formData.premise_id"
             @change="fetchApartments"
           >
-            <option value="">Дом</option>
+            <option value="" disabled>
+              {{ isNew ? 'Дом' : appeal?.premise?.address || 'Выберите дом' }}
+            </option>
             <option
               v-for="premise in premises"
               :key="premise.id"
@@ -19,11 +37,17 @@
               {{ premise.address }}
             </option>
           </select>
-        </label>
-        <label>
-          Квартира
+        </div>
+        <div>
+          <label v-if="!isNew">Квартира</label>
           <select class="modal__field" v-model="formData.apartment_id">
-            <option value="">Квартира</option>
+            <option value="">
+              {{
+                isNew
+                  ? 'Квартира'
+                  : appeal?.apartment?.number || 'Выберите квартиру'
+              }}
+            </option>
             <option
               v-for="apartment in apartments"
               :key="apartment.id"
@@ -32,67 +56,77 @@
               {{ apartment.number }}
             </option>
           </select>
-        </label>
-        <label>
-          Фамилия
-          <input
-            class="modal__field"
-            type="text"
-            v-model="formData.applicant.last_name"
-          />
-        </label>
-        <label>
-          Имя
-          <input
-            class="modal__field"
-            type="text"
-            v-model="formData.applicant.first_name"
-          />
-        </label>
-        <label>
-          Отчество
-          <input
-            class="modal__field"
-            type="text"
-            v-model="formData.applicant.patronymic_name"
-          />
-        </label>
-        <label>
-          Телефон
-          <input
-            class="modal__field"
-            type="text"
-            v-model="formData.applicant.username"
-          />
-        </label>
-        <label>
-          Описание
-          <textarea v-model="formData.description"></textarea>
-        </label>
-        <label>
-          Срок
+        </div>
+        <div>
+          <label v-if="!isNew">Срок</label>
           <input
             class="modal__field"
             type="datetime-local"
-            v-model="formData.due_date"
+            placeholder="Срок"
+            v-model="formattedDueDate"
           />
-        </label>
-        <p v-if="!isNew"><strong>Статус:</strong> {{ appeal.status }}</p>
-        <ul v-if="errors.length" class="errors">
-          <li v-for="error in errors" :key="error">{{ error }}</li>
-        </ul>
-
-        <div class="actions">
-          <button type="submit">{{ isNew ? 'Создать' : 'Сохранить' }}</button>
-          <button type="button" @click="$emit('close')">Отмена</button>
         </div>
-      </form>
-    </div>
+      </div>
+      <div class="modal__input">
+        <div>
+          <label v-if="!isNew">Фамилия</label>
+          <input
+            class="modal__field"
+            type="text"
+            placeholder="Фамилия"
+            v-model="formData.applicant.last_name"
+          />
+        </div>
+        <div>
+          <label v-if="!isNew">Имя</label>
+          <input
+            class="modal__field"
+            type="text"
+            placeholder="Имя"
+            v-model="formData.applicant.first_name"
+          />
+        </div>
+        <div>
+          <label v-if="!isNew">Отчество</label>
+          <input
+            class="modal__field"
+            type="text"
+            placeholder="Отчество"
+            v-model="formData.applicant.patronymic_name"
+          />
+        </div>
+        <div>
+          <label v-if="!isNew">Телефон</label>
+          <input
+            class="modal__field"
+            type="text"
+            placeholder="Телефон"
+            v-model="formData.applicant.username"
+          />
+        </div>
+      </div>
+      <div>
+        <label v-if="!isNew">Описание</label>
+        <textarea
+          placeholder="Описание"
+          v-model="formData.description"
+        ></textarea>
+      </div>
+      <ul v-if="errors.length" class="modal__errors">
+        <li v-for="error in errors" :key="error">{{ error }}</li>
+      </ul>
+
+      <div class="modal__button-wrapper">
+        <button class="modal__button" type="submit">
+          {{ isNew ? 'Создать' : 'Сохранить' }}
+        </button>
+      </div>
+    </form>
   </div>
 </template>
 
 <script>
-import axios from 'axios';
+import { mapState, mapActions } from 'vuex';
 
 export default {
   name: 'Modal',
@@ -108,21 +142,21 @@ export default {
   },
   data() {
     return {
-      formData: {
-        premise_id: '',
-        apartment_id: '',
-        applicant: {
-          last_name: '',
-          first_name: '',
-          patronymic_name: '',
-          username: '',
-        },
-        description: '',
-        due_date: '',
-        status_id: 1,
-      },
-      premises: [],
-      apartments: [],
+      formData: this.isNew
+        ? {
+            premise_id: '',
+            apartment_id: '',
+            applicant: {
+              last_name: '',
+              first_name: '',
+              patronymic_name: '',
+              username: '',
+            },
+            description: '',
+            due_date: '',
+            status_id: 1,
+          }
+        : { ...this.appeal },
       errors: [],
     };
   },
@@ -131,69 +165,51 @@ export default {
       immediate: true,
       handler(newAppeal) {
         if (newAppeal) {
+          console.log('New appeal data:', newAppeal);
           this.formData = {
             ...newAppeal,
             applicant: { ...newAppeal.applicant },
+            premise_id: newAppeal.premise_id || '',
+            apartment_id: newAppeal.apartment_id || '',
           };
+          if (this.formData.premise_id) {
+            this.fetchApartments();
+          }
         }
       },
     },
   },
+  computed: {
+    ...mapState(['premises', 'apartments']),
+    formattedDueDate: {
+      get() {
+        return this.formData.due_date
+          ? this.formData.due_date.slice(0, 16)
+          : '';
+      },
+      set(value) {
+        this.formData.due_date = value;
+      },
+    },
+  },
   methods: {
-    async fetchPremises() {
-      const token = localStorage.getItem('authToken');
-      try {
-        const response = await axios.get(
-          `https://dev.moydomonline.ru/api/geo/v2.0/user-premises/?search=`,
-          {
-            headers: { Authorization: `Token ${token}` },
-          }
-        );
-        this.premises = response.data.results;
-      } catch (error) {
-        console.error('Ошибка при загрузке домов:', error);
-      }
+    ...mapActions(['fetchPremises', 'fetchApartments', 'saveAppeal']),
+    handleClose() {
+      this.$emit('close');
     },
     async fetchApartments() {
-      const token = localStorage.getItem('authToken');
-      try {
-        const response = await axios.get(
-          `https://dev.moydomonline.ru/api/geo/v1.0/apartments/?premise_id=${this.formData.premise_id}`,
-          {
-            headers: { Authorization: `Token ${token}` },
-          }
-        );
-        this.apartments = response.data.results;
-      } catch (error) {
-        console.error('Ошибка при загрузке квартир:', error);
-      }
+      await this.$store.dispatch('fetchApartments', this.formData.premise_id);
+    },
+    formatDateCreate(date) {
+      return new Date(date).toLocaleDateString();
     },
     async handleSubmit() {
       try {
-        const token = localStorage.getItem('authToken');
-
-        const url = this.isNew
-          ? 'https://dev.moydomonline.ru/api/appeals/v1.0/appeals/'
-          : `https://dev.moydomonline.ru/api/appeals/v1.0/appeals/${this.appeal.id}/`;
-
-        const method = this.isNew ? 'post' : 'patch';
-
-        console.log('Отправка данных:', this.formData);
-
-        const response = await axios[method](url, this.formData, {
-          headers: { Authorization: `Token ${token}` },
-        });
-
-        console.log('Ответ от сервера:', response);
-
+        await this.saveAppeal({ data: this.formData, isNew: this.isNew });
         this.$emit('save');
-        this.$emit('close');
+        this.handleClose();
       } catch (error) {
-        if (error.response && error.response.data) {
-          this.errors = Object.values(error.response.data).flat();
-        } else {
-          console.error('Ошибка при сохранении заявки:', error);
-        }
+        this.errors = error;
       }
     },
   },
@@ -207,7 +223,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.modal-backdrop {
+.modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -217,42 +233,103 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-}
 
-.modal {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  width: 500px;
-  max-width: 90%;
+  &__title {
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    font-size: 16px;
+    height: 40px;
+    line-height: 24px;
+    margin: 0;
+  }
+
+  &__status {
+    margin: 0;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    color: #333333;
+  }
+
+  &__form {
+    background: white;
+    padding: 24px 32px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  &__input {
+    width: 100%;
+    display: flex;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+
+  &__block {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
   &__field {
     width: 100%;
-    padding: 18px 0;
-    border: 1px solid #cccccc;
+    padding: 19px 0;
+    margin: 0;
+  }
+
+  &__errors {
+    color: red;
+    list-style: none;
+    padding: 0;
+  }
+
+  &__button-wrapper {
+    display: flex;
+    justify-content: end;
+  }
+
+  &__button {
+    padding: 8px 16px;
+    background-color: #50b053;
+    color: #ffffff;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    border: 0;
+    border-radius: 2px;
   }
 }
 
 label {
   display: flex;
   flex-direction: column;
-  margin-bottom: 10px;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 18px;
+  color: #50b053;
+}
+
+textarea {
+  min-height: 125px;
+  overflow: hidden;
+  resize: none;
 }
 
 textarea,
 input,
 select {
-  margin-top: 5px;
-  border: 1px solid #cccccc;
-}
-
-.errors {
-  color: red;
-  list-style: none;
+  width: 100%;
   padding: 0;
+  border: 0;
+  border-bottom: 1px solid #dddfe0;
+  outline: none;
+  color: #999999;
 }
 
-.actions {
-  display: flex;
-  justify-content: space-between;
+div {
+  width: 100%;
 }
 </style>
