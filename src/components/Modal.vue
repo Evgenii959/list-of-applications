@@ -114,7 +114,9 @@
         ></textarea>
       </div>
       <ul v-if="errors.length" class="modal__errors">
-        <li v-for="(error, index) in errors" :key="index">{{ error.due_date }}</li>
+        <li v-for="(error, index) in errors" :key="index">
+          {{ error.due_date }}
+        </li>
       </ul>
 
       <div class="modal__button-wrapper">
@@ -311,6 +313,11 @@ export default {
     border: 0;
     border-radius: 2px;
     cursor: pointer;
+    box-shadow: 0 4px 4px #6aae5e40;
+    &:hover {
+      opacity: 0.7;
+      transition: all 0.5s;
+    }
   }
 
   &__select {

@@ -143,6 +143,11 @@ export default {
     border: 0;
     border-radius: 4px;
     cursor: pointer;
+    box-shadow: 0 4px 4px #6aae5e40;
+    &:hover {
+      opacity: 0.7;
+      transition: all 0.5s;
+    }
   }
   &__lock {
     padding: 2px 5px;

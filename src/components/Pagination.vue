@@ -140,6 +140,7 @@ export default {
     padding: 8px 12px;
     background-color: #50b053;
     border: 0;
+        box-shadow: 0 4px 4px #6aae5e40;
     &:disabled {
       background: transparent;
       color: #6c757d;

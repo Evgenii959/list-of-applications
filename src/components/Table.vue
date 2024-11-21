@@ -104,6 +104,10 @@ export default {
     line-height: 20px;
     margin: auto 0 auto 4px;
     cursor: pointer;
+    &:hover {
+      opacity: 0.7;
+      transition: all 0.5s;
+    }
   }
 }
 th {

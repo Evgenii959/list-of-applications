@@ -149,6 +149,11 @@ export default {
       border-radius: 2px;
       border: 0;
       cursor: pointer;
+      box-shadow: 0 4px 4px #6aae5e40;
+      &:hover {
+        opacity: 0.7;
+        transition: all 0.5s;
+      }
     }
   }
   &__btn {
