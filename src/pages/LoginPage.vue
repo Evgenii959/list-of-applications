@@ -131,6 +131,7 @@ export default {
     width: 100%;
     border: 0;
     padding: 0 8px;
+    outline: none;
   }
   &__button {
     font-family: 'Roboto', sans-serif;
