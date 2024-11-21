@@ -15,11 +15,7 @@
         />
       </div>
       <div class="login__block">
-        <img
-          class="login__lock"
-          src="../assets/images/lock.svg"
-          alt="Пароль"
-        />
+        <img class="login__lock" src="../assets/images/lock.svg" alt="Пароль" />
         <input
           class="login__input"
           type="password"
@@ -52,17 +48,26 @@ export default {
   computed: {
     errorMessage() {
       return this.$store.getters.errorMessage;
-    }
+    },
   },
   methods: {
     signIn() {
-      this.$store.dispatch('signIn', { username: this.username, password: this.password })
+      this.$store
+        .dispatch('signIn', {
+          username: this.username,
+          password: this.password,
+        })
         .then(() => {
           if (this.$store.getters.isAuthenticated) {
             this.$router.push('/list-of-applications/');
           }
         });
     },
+  },
+  created() {
+    if (this.$store.getters.isAuthenticated) {
+      this.$router.push('/list-of-applications/');
+    }
   },
 };
 </script>
@@ -144,6 +149,12 @@ export default {
   }
   &__visible {
     margin-right: 12px;
+  }
+
+  &__errors {
+    color: red;
+    list-style: none;
+    padding: 0;
   }
 }
 </style>

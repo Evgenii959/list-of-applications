@@ -16,11 +16,12 @@
                 )}`
           }}
         </h2>
-        <p v-if="!isNew" class="modal__status">{{ appeal.status.name }}</p>
+        <p v-if="!isNew" class="modal__status">{{ appeal?.status?.name }}</p>
+        <p v-else class="modal__status">Новая</p>
       </div>
-      <div class="modal__input">
-        <div>
-          <label v-if="!isNew">Дом</label>
+      <div class="modal__section">
+        <div class="modal__select">
+          <label v-if="!isNew" class="modal__label">Дом</label>
           <select
             class="modal__field"
             v-model="formData.premise_id"
@@ -38,8 +39,8 @@
             </option>
           </select>
         </div>
-        <div>
-          <label v-if="!isNew">Квартира</label>
+        <div class="modal__select">
+          <label v-if="!isNew" class="modal__label">Квартира</label>
           <select class="modal__field" v-model="formData.apartment_id">
             <option value="">
               {{
@@ -57,8 +58,8 @@
             </option>
           </select>
         </div>
-        <div>
-          <label v-if="!isNew">Срок</label>
+        <div class="modal__input">
+          <label v-if="!isNew" class="modal__label">Срок</label>
           <input
             class="modal__field"
             type="datetime-local"
@@ -67,9 +68,9 @@
           />
         </div>
       </div>
-      <div class="modal__input">
-        <div>
-          <label v-if="!isNew">Фамилия</label>
+      <div class="modal__section">
+        <div class="modal__input">
+          <label v-if="!isNew" class="modal__label">Фамилия</label>
           <input
             class="modal__field"
             type="text"
@@ -77,8 +78,8 @@
             v-model="formData.applicant.last_name"
           />
         </div>
-        <div>
-          <label v-if="!isNew">Имя</label>
+        <div class="modal__input">
+          <label v-if="!isNew" class="modal__label">Имя</label>
           <input
             class="modal__field"
             type="text"
@@ -86,8 +87,8 @@
             v-model="formData.applicant.first_name"
           />
         </div>
-        <div>
-          <label v-if="!isNew">Отчество</label>
+        <div class="modal__input">
+          <label v-if="!isNew" class="modal__label">Отчество</label>
           <input
             class="modal__field"
             type="text"
@@ -95,8 +96,8 @@
             v-model="formData.applicant.patronymic_name"
           />
         </div>
-        <div>
-          <label v-if="!isNew">Телефон</label>
+        <div class="modal__input">
+          <label v-if="!isNew" class="modal__label">Телефон</label>
           <input
             class="modal__field"
             type="text"
@@ -105,15 +106,15 @@
           />
         </div>
       </div>
-      <div>
-        <label v-if="!isNew">Описание</label>
+      <div class="modal__input">
+        <label v-if="!isNew" class="modal__label">Описание заявки</label>
         <textarea
           placeholder="Описание"
           v-model="formData.description"
         ></textarea>
       </div>
       <ul v-if="errors.length" class="modal__errors">
-        <li v-for="error in errors" :key="error">{{ error }}</li>
+        <li v-for="(error, index) in errors" :key="index">{{ error.due_date }}</li>
       </ul>
 
       <div class="modal__button-wrapper">
@@ -165,7 +166,6 @@ export default {
       immediate: true,
       handler(newAppeal) {
         if (newAppeal) {
-          console.log('New appeal data:', newAppeal);
           this.formData = {
             ...newAppeal,
             applicant: { ...newAppeal.applicant },
@@ -245,7 +245,7 @@ export default {
   }
 
   &__status {
-    margin: 0;
+    margin: 0 10px 0 0;
     font-weight: 400;
     font-size: 14px;
     line-height: 20px;
@@ -259,9 +259,11 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 24px;
+    max-width: 674px;
+    width: 100%;
   }
 
-  &__input {
+  &__section {
     width: 100%;
     display: flex;
     gap: 14px;
@@ -274,10 +276,18 @@ export default {
     justify-content: space-between;
   }
 
+  &__label {
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 18px;
+    color: #50b053;
+  }
+
   &__field {
     width: 100%;
     padding: 19px 0;
     margin: 0;
+    cursor: pointer;
   }
 
   &__errors {
@@ -300,16 +310,16 @@ export default {
     line-height: 20px;
     border: 0;
     border-radius: 2px;
+    cursor: pointer;
   }
-}
 
-label {
-  display: flex;
-  flex-direction: column;
-  font-weight: 400;
-  font-size: 12px;
-  line-height: 18px;
-  color: #50b053;
+  &__select {
+    width: 100%;
+  }
+
+  &__input {
+    width: 100%;
+  }
 }
 
 textarea {
@@ -327,9 +337,6 @@ select {
   border-bottom: 1px solid #dddfe0;
   outline: none;
   color: #999999;
-}
-
-div {
-  width: 100%;
+  background-color: transparent;
 }
 </style>
